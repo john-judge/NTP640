@@ -18,69 +18,82 @@ T = 200  # total time in ms
 time = np.arange(0, T+dt, dt)  # time vector
 N = len(time)  # number of time steps
 
-# Initialize a variable to store the time stamps when a spike occurred.
-spike_times = []
-# Initialize membrane potential vector to resting potential
-V = np.zeros(N)
-V[0] = V_rest
+def current_source(Current_source, N, time, default_step_current=2):
+    # Current source
+    if Current_source == 'sine':
+        # Time-varying input current: Sinusoidal current with some noise
+        I = 2 * np.sin(2 * np.pi * 0.5 * time / 50) + 0.5 * np.random.randn(N)  # in nA
+    elif Current_source == 'step':
+        # Step function
+        I = default_step_current*np.ones(N)
+        I[:500] = 0
+        I[-500:] = 0
+    else:
+        raise ValueError('ERROR! Did not recognize the current source, use step or sine.')
+    return I
 
-# Current source
-if Current_source == 'sine':
-    # Time-varying input current: Sinusoidal current with some noise
-    I = 2 * np.sin(2 * np.pi * 0.5 * time / 50) + 0.5 * np.random.randn(N)  # in nA
-elif Current_source == 'step':
-    # Step function
-    I = 2*np.ones(N)
-    I[:500] = 0
-    I[-500:] = 0
-else:
-    raise ValueError('ERROR! Did not recognize the current source, use step or sine.')
+def simulate_model(refractory_period, N, time, I):
+    # Simulate the Integrate-and-Fire model
 
-# Simulate the Integrate-and-Fire model
-if not refractory_period:
-    print('Simulating the Integrate-and-Fire model without the refractory period')
-    for t in range(1, N):
-        dV = ((-V[t-1] + V_rest + I[t] * Rm) / tau_m) * dt
-        V[t] = V[t-1] + dV
+    spike_times = []
+    # Initialize membrane potential vector to resting potential
+    V = np.zeros(N)
+    V[0] = V_rest
 
-        if V[t] >= V_th:
-            V[t] = V_reset
-            spike_times.append(time[t])
-else:
-    print('Simulating the Integrate-and-Fire model with the refractory period')
-    # Refractory period parameters
-    t_ref = 5  # refractory period in ms
-    last_spike_t = -t_ref  # time of the last spike
-
-    for t in range(1, N):
-        # Check if the neuron is in the refractory period
-        if time[t] - last_spike_t < t_ref:
-            V[t] = V_reset
-        else:
+    if not refractory_period:
+        print('Simulating the Integrate-and-Fire model without the refractory period')
+        for t in range(1, N):
             dV = ((-V[t-1] + V_rest + I[t] * Rm) / tau_m) * dt
             V[t] = V[t-1] + dV
 
             if V[t] >= V_th:
                 V[t] = V_reset
                 spike_times.append(time[t])
-                last_spike_t = time[t]  # update the time of the last spike
+    else:
+        print('Simulating the Integrate-and-Fire model with the refractory period')
+        # Refractory period parameters
+        t_ref = 5  # refractory period in ms
+        last_spike_t = -t_ref  # time of the last spike
 
-# Data Visualization
-fig, axs = plt.subplots(2, 1)
-axs[0].plot(time, V)
-axs[0].scatter(spike_times, [V_th]*len(spike_times), color='r')
-axs[0].set_xlabel('Time (ms)')
-axs[0].set_ylabel('Membrane Potential (mV)')
-axs[0].set_title('Membrane Potential and Spike Times')
-axs[0].set_ylim([-90, -40])
-axs[0].set_yticks(range(-90, -40, 10))
+        for t in range(1, N):
+            # Check if the neuron is in the refractory period
+            if time[t] - last_spike_t < t_ref:
+                V[t] = V_reset
+            else:
+                dV = ((-V[t-1] + V_rest + I[t] * Rm) / tau_m) * dt
+                V[t] = V[t-1] + dV
 
-axs[1].plot(time, I)
-axs[1].set_xlabel('Time (ms)')
-axs[1].set_ylabel('Input Current (nA)')
-axs[1].set_title('Input Current')
-axs[1].set_ylim([-3, 3])
-axs[1].set_yticks(range(-3, 4))
+                if V[t] >= V_th:
+                    V[t] = V_reset
+                    spike_times.append(time[t])
+                    last_spike_t = time[t]  # update the time of the last spike
+    return V, spike_times
 
-plt.tight_layout()
-plt.show()
+def plot_data(time, V, I, spike_times):
+    # Data Visualization
+    fig, axs = plt.subplots(2, 1)
+    axs[0].plot(time, V)
+    axs[0].scatter(spike_times, [V_th]*len(spike_times), color='r')
+    axs[0].set_xlabel('Time (ms)')
+    axs[0].set_ylabel('Membrane Potential (mV)')
+    axs[0].set_title('Membrane Potential and Spike Times')
+    axs[0].set_ylim([-90, -40])
+    axs[0].set_yticks(range(-90, -40, 10))
+
+    axs[1].plot(time, I)
+    axs[1].set_xlabel('Time (ms)')
+    axs[1].set_ylabel('Input Current (nA)')
+    axs[1].set_title('Input Current')
+    axs[1].set_ylim([-3, 3])
+    axs[1].set_yticks(range(-3, 4))
+
+    plt.tight_layout()
+    plt.show()
+
+def run_simulation(Current_source, N, time, refractory_period, default_step_current=2, skip_plot=False):
+    I = current_source(Current_source, N, time, default_step_current=default_step_current)
+    V, spike_times = simulate_model(refractory_period, N, time, I)
+    if not skip_plot:
+        plot_data(time, V, I, spike_times)
+    return V, I, spike_times
+    
