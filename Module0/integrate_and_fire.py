@@ -43,9 +43,11 @@ def simulate_model(refractory_period, N, time, I):
     if not refractory_period:
         print('Simulating the Integrate-and-Fire model without the refractory period')
         for t in range(1, N):
-            dV = ((-V[t-1] + V_rest + I[t] * Rm) / tau_m) * dt
-            V[t] = V[t-1] + dV
+            # Euler's method: V(t) = V(t-1) + dV for differential equation 
+            dV = ((-V[t-1] + V_rest + I[t] * Rm) / tau_m) * dt  # change in membrane potential
+            V[t] = V[t-1] + dV  # update the membrane potential for the next time step
 
+            # Check if the membrane potential has reached the threshold
             if V[t] >= V_th:
                 V[t] = V_reset
                 spike_times.append(time[t])
