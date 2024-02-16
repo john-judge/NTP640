@@ -101,14 +101,16 @@ class ReceptorLevelComputations:
         ----------
         controls : controls object
         setters : dict
-            A dictionary of names mapping to indices. Necessary in case one of the slider
-            names is invalid as a kwarg to function (e.g. if it has a space in it).
         ** kwargs:
-            pairs of param names and index to set the slider to.
-            NOTE: the values must be integer indices, not necessarily the
-            value that you expect the slider to display.
+            pairs of param names and a tuple of (x, y, z) where
+               x: the lower bound of slider
+               y: the upper bound of slider
+               z: value to set the slider to.
+            Interpolation to an index in [0,49] is needed 
+            since the values in the IntSlider object must be 
+            integer indices, not necessarily the
+            value that you expect the slider to display. 
         """
-        print(controls.controls)
         for name, val in kwargs.items():
             start, end, default = val
             

@@ -116,6 +116,7 @@ dependencies:
     - markupsafe==2.1.4
     - matplotlib-inline==0.1.6
     - mistune==3.0.2
+    - mpl-interactions==0.24.1
     - nbclient==0.9.0
     - nbconvert==7.14.2
     - nbformat==5.9.2
@@ -157,4 +158,4 @@ dependencies:
     - webencodings==0.5.1
     - websocket-client==1.7.0
     - widgetsnbextension==4.0.10
-prefix: C:\Users\jjudge3\Anaconda3\envs\NTP640
+prefix: C:\Users\jjudg\anaconda3\envs\NTP640
