@@ -120,3 +120,15 @@ class ReceptorLevelComputations:
 
             controls.controls[name].children[0].value = index
 
+    def convert_frac_to_idx(self, time, StimStartFrac, StimEndFrac):
+        # Find the indices of stimulus start and end    
+        StimStartIndx = int(np.ceil(StimStartFrac * len(time)))
+        StimEndIndx = int(np.ceil(StimEndFrac * len(time)))
+        return StimStartIndx, StimEndIndx
+    
+    def create_stim_mask(self, time, StimStartFrac, StimEndFrac, TrainDur, dt):
+        StimStartIndx, StimEndIndx = self.convert_frac_to_idx(time, StimStartFrac, StimEndFrac)
+        Mask = np.zeros_like(time)
+        Mask[StimStartIndx:StimStartIndx + int(np.ceil(TrainDur / dt))] = 1
+        return Mask
+
